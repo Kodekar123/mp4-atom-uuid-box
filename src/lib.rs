@@ -158,6 +158,8 @@ mod prft;
 mod sidx;
 mod styp;
 mod types;
+mod uuid;
+mod uuid_boxes;
 
 pub use any::*;
 pub use atom::*;
@@ -180,6 +182,7 @@ pub use prft::*;
 pub use sidx::*;
 pub use styp::*;
 pub use types::*;
+pub use uuid::*;
 
 #[cfg(feature = "tokio")]
 mod tokio;
