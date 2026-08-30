@@ -356,7 +356,7 @@ impl From<usize> for Zeroed {
 pub struct ExtendedType([u8; 16]);
 
 impl ExtendedType {
-    pub fn new(value: &[u8; 16]) -> Self {
+    pub const fn new(value: &[u8; 16]) -> Self {
         ExtendedType(*value)
     }
 }

@@ -183,6 +183,7 @@ pub use sidx::*;
 pub use styp::*;
 pub use types::*;
 pub use uuid::*;
+pub use uuid_boxes::*;
 
 #[cfg(feature = "tokio")]
 mod tokio;
