@@ -105,4 +105,35 @@ mod tests {
         assert_eq!(original, decoded, "They werent equal");
         Ok(())
     }
+
+    #[test]
+    fn test_c2pa_uuid_golden_vector() -> Result<()> {
+        let mut bytes = Vec::new();
+
+        // 1. C2pa Extended Type bytes (16 bytes from the specification)
+        bytes.extend_from_slice(&[
+            0xD8, 0xFE, 0xC3, 0xD6, 0x1B, 0x0E, 0x48, 0x3C, 0x92, 0x97, 0x58, 0x28, 0x87, 0x7E,
+            0xC4, 0x81,
+        ]);
+
+        // 2. FullBox version and flags (version = 0, flags = 0 -> 4 bytes of 0x00)
+        bytes.extend_from_slice(&[0x00, 0x00, 0x00, 0x00]);
+
+        // 3. box_purpose string bytes (null-terminated UTF-8 string)
+        bytes.extend_from_slice(b"urn:uuid:test\0");
+
+        // 4. Data payload bytes (0xDEADBEEF)
+        bytes.extend_from_slice(&[0xDE, 0xAD, 0xBE, 0xEF]);
+
+        let mut cursor = &bytes[..];
+        let decoded = Uuid::decode_body(&mut cursor)?;
+
+        let expected = Uuid::C2pa(C2pa {
+            box_purpouse: "urn:uuid:test".to_string(),
+            data: vec![0xDE, 0xAD, 0xBE, 0xEF],
+        });
+
+        assert_eq!(decoded, expected);
+        Ok(())
+    }
 }
