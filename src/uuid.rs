@@ -89,7 +89,7 @@ mod tests {
     #[test]
     fn test_c2pa_round_trip() -> Result<()> {
         let original = Uuid::C2pa(C2pa {
-            box_purpouse: "urn:uuid:...".to_string(),
+            box_purpose: "urn:uuid:...".to_string(),
             data: vec![1, 2, 3, 4],
         });
 
@@ -129,7 +129,7 @@ mod tests {
         let decoded = Uuid::decode_body(&mut cursor)?;
 
         let expected = Uuid::C2pa(C2pa {
-            box_purpouse: "urn:uuid:test".to_string(),
+            box_purpose: "urn:uuid:test".to_string(),
             data: vec![0xDE, 0xAD, 0xBE, 0xEF],
         });
 

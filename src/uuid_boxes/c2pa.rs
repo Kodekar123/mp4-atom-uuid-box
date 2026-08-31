@@ -9,7 +9,7 @@ ext! {
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct C2pa {
-    pub box_purpouse: String,
+    pub box_purpose: String,
     pub data: Vec<u8>,
 }
 
@@ -25,13 +25,13 @@ impl UuidAtomExt for C2pa {
     fn decode_uuid_body_ext<B: Buf>(buf: &mut B, _: C2paExt) -> Result<Self> {
         // The ext version is restricted to 0, and flags 0 for C2PA, so they are ignored
         Ok(C2pa {
-            box_purpouse: String::decode(buf)?,
+            box_purpose: String::decode(buf)?,
             data: Vec::decode(buf)?,
         })
     }
 
     fn encode_uuid_body_ext<B: BufMut>(&self, buf: &mut B) -> Result<C2paExt> {
-        self.box_purpouse.as_str().encode(buf)?;
+        self.box_purpose.as_str().encode(buf)?;
         self.data.encode(buf)?;
         Ok(C2paVersion::V0.into())
     }
