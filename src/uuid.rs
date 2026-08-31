@@ -48,6 +48,7 @@ pub enum Uuid {
     Unknown(ExtendedType, Vec<u8>),
 }
 
+// This should be made in a macro to support all defined box types TODO
 impl Atom for Uuid {
     const KIND: FourCC = FourCC::new(b"uuid");
 
@@ -66,11 +67,42 @@ impl Atom for Uuid {
     }
 
     fn encode_body<B: BufMut>(&self, buf: &mut B) -> Result<()> {
-        todo!()
+        match self {
+            Uuid::C2pa(c2pa) => {
+                C2pa::EXTENDED_TYPE.encode(buf)?;
+                c2pa.encode_uuid_body(buf)?;
+            }
+            Uuid::Unknown(et, payload) => {
+                et.encode(buf)?;
+                payload.encode(buf)?;
+            }
+        }
+
+        Ok(())
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_c2pa_round_trip() -> Result<()> {
+        let original = Uuid::C2pa(C2pa {
+            box_purpouse: "urn:uuid:...".to_string(),
+            data: vec![1, 2, 3, 4],
+        });
+
+        // 1. Encode into a byte buffer
+        let mut buf = Vec::new();
+        original.encode_body(&mut buf)?;
+
+        // 2. Decode back from the buffer
+        let mut cursor = &buf[..];
+        let decoded = Uuid::decode_body(&mut cursor)?;
+
+        // 3. Assert equality
+        assert_eq!(original, decoded, "They werent equal");
+        Ok(())
+    }
 }

@@ -22,12 +22,18 @@ impl UuidAtomExt for C2pa {
     // implement type, and get an understanding of what it does TODO
     type Ext = C2paExt;
 
-    fn decode_uuid_body_ext<B: Buf>(buf: &mut B, ext: C2paExt) -> Result<Self> {
-        todo!()
+    fn decode_uuid_body_ext<B: Buf>(buf: &mut B, _: C2paExt) -> Result<Self> {
+        // The ext version is restricted to 0, and flags 0 for C2PA, so they are ignored
+        Ok(C2pa {
+            box_purpouse: String::decode(buf)?,
+            data: Vec::decode(buf)?,
+        })
     }
 
     fn encode_uuid_body_ext<B: BufMut>(&self, buf: &mut B) -> Result<C2paExt> {
-        todo!()
+        self.box_purpouse.as_str().encode(buf)?;
+        self.data.encode(buf)?;
+        Ok(C2paVersion::V0.into())
     }
 }
 
