@@ -57,7 +57,15 @@ impl Atom for Uuid {
         let et = ExtendedType::decode(buf)?;
 
         match et {
-            C2pa::EXTENDED_TYPE => Ok(Uuid::C2pa(C2pa::decode_uuid_body(buf)?)),
+            // The header already fixed the box size, so a malformed C2PA body does not
+            // affect framing. It is kept as raw bytes, letting the caller decide what to do
+            C2pa::EXTENDED_TYPE => {
+                let payload = Vec::<u8>::decode(buf)?;
+                match C2pa::decode_uuid_body(&mut payload.as_slice()) {
+                    Ok(c2pa) => Ok(Uuid::C2pa(c2pa)),
+                    Err(_) => Ok(Uuid::Unknown(et, payload)),
+                }
+            }
             _ => {
                 let payload = Vec::<u8>::decode(buf)?;
                 Ok(Uuid::Unknown(et, payload))
@@ -133,6 +141,26 @@ mod tests {
         });
 
         assert_eq!(decoded, expected);
+        Ok(())
+    }
+
+    #[test]
+    fn test_malformed_c2pa_falls_back_to_unknown() -> Result<()> {
+        let mut payload = Vec::new();
+        // FullBox version and flags
+        payload.extend_from_slice(&[0x00, 0x00, 0x00, 0x00]);
+        // box_purpose that is not valid UTF-8
+        payload.extend_from_slice(&[0xFF, 0xFE, 0x00]);
+        payload.extend_from_slice(&[0xDE, 0xAD, 0xBE, 0xEF]);
+
+        let mut bytes = Vec::new();
+        C2pa::EXTENDED_TYPE.encode(&mut bytes)?;
+        bytes.extend_from_slice(&payload);
+
+        let mut cursor = &bytes[..];
+        let decoded = Uuid::decode_body(&mut cursor)?;
+
+        assert_eq!(decoded, Uuid::Unknown(C2pa::EXTENDED_TYPE, payload));
         Ok(())
     }
 }
